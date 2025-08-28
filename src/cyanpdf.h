@@ -22,7 +22,16 @@ public:
     CyanPDF(QWidget *parent = nullptr);
     ~CyanPDF();
 
+    const QString getGhostscript(bool pathOnly = false);
+    const QString getCachePath();
+    const QString getChecksum(const QString &filename);
+    bool isFileType(const QString &filename,
+                           const QString &mime,
+                           bool startsWith = false);
+    bool isPDF(const QString &filename);
+
 private:
     Ui::CyanPDF *ui;
 };
+
 #endif // CYANPDF_H
