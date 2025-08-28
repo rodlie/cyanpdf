@@ -6,6 +6,7 @@
 #include "cyanpdf.h"
 #include "ui_cyanpdf.h"
 
+#include <QDebug>
 #include <QDir>
 #include <QFile>
 #include <QMimeDatabase>
@@ -56,6 +57,13 @@ const QString CyanPDF::getGhostscript(bool pathOnly)
     return pathOnly ? QString() : QString("gs");
 }
 
+const QString CyanPDF::getPostscript(const QString &filename)
+{
+    if (!isICC(filename)) { return QString(); }
+    // TODO
+    return QString();
+}
+
 const QString CyanPDF::getCachePath()
 {
     QString path = QDir::tempPath(); // TODO
@@ -87,10 +95,16 @@ bool CyanPDF::isFileType(const QString &filename,
     if (!QFile::exists(filename)) { return false; }
     QMimeDatabase db;
     QMimeType type = db.mimeTypeForFile(filename);
+    qDebug() << "mime type" << filename << type.name();
     return (startsWith? type.name().startsWith(mime) : type.name() == mime);
 }
 
 bool CyanPDF::isPDF(const QString &filename)
 {
     return isFileType(filename, "application/pdf");
+}
+
+bool CyanPDF::isICC(const QString &filename)
+{
+    return isFileType(filename, "application/vnd.iccprofile");
 }

@@ -23,12 +23,14 @@ public:
     ~CyanPDF();
 
     const QString getGhostscript(bool pathOnly = false);
+    const QString getPostscript(const QString &filename);
     const QString getCachePath();
     const QString getChecksum(const QString &filename);
     bool isFileType(const QString &filename,
                            const QString &mime,
                            bool startsWith = false);
     bool isPDF(const QString &filename);
+    bool isICC(const QString &filename);
 
 private:
     Ui::CyanPDF *ui;
