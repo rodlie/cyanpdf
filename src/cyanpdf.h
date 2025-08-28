@@ -22,15 +22,35 @@ public:
     CyanPDF(QWidget *parent = nullptr);
     ~CyanPDF();
 
+    enum RenderIntent {
+        Perceptual,
+        Colorimetric,
+        Saturation,
+        AbsoluteColorimetric
+    };
+
+    enum ColorSpace {
+        RGB,
+        CMYK,
+        GRAY
+    };
+
     const QString getGhostscript(bool pathOnly = false);
-    const QString getPostscript(const QString &filename);
+    const QString getPostscript(const QString &profile);
     const QString getCachePath();
     const QString getChecksum(const QString &filename);
-    bool isFileType(const QString &filename,
-                           const QString &mime,
-                           bool startsWith = false);
-    bool isPDF(const QString &filename);
-    bool isICC(const QString &filename);
+    const QString getConvertArgs(const QString &inputFile,
+                                 const QString &inputIcc,
+                                 const QString &outputFile,
+                                 const QString &outputIcc,
+                                 const int &colorSpace = ColorSpace::CMYK,
+                                 const int &renderIntent = RenderIntent::Colorimetric,
+                                 const bool blackPoint = true);
+    const bool isFileType(const QString &filename,
+                          const QString &mime,
+                          bool startsWith = false);
+    const bool isPDF(const QString &filename);
+    const bool isICC(const QString &filename);
 
 private:
     Ui::CyanPDF *ui;

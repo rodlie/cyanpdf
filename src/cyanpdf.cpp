@@ -13,6 +13,8 @@
 #include <QMimeType>
 #include <QCryptographicHash>
 
+#include <lcms2.h>
+
 CyanPDF::CyanPDF(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::CyanPDF)
@@ -57,9 +59,9 @@ const QString CyanPDF::getGhostscript(bool pathOnly)
     return pathOnly ? QString() : QString("gs");
 }
 
-const QString CyanPDF::getPostscript(const QString &filename)
+const QString CyanPDF::getPostscript(const QString &profile)
 {
-    if (!isICC(filename)) { return QString(); }
+    if (!isICC(profile)) { return QString(); }
     // TODO
     return QString();
 }
@@ -88,7 +90,19 @@ const QString CyanPDF::getChecksum(const QString &filename)
     return result;
 }
 
-bool CyanPDF::isFileType(const QString &filename,
+const QString CyanPDF::getConvertArgs(const QString &inputFile,
+                                      const QString &inputIcc,
+                                      const QString &outputFile,
+                                      const QString &outputIcc,
+                                      const int &colorSpace,
+                                      const int &renderIntent,
+                                      const bool blackPoint)
+{
+    // TODO
+    return QString();
+}
+
+const bool CyanPDF::isFileType(const QString &filename,
                          const QString &mime,
                          bool startsWith)
 {
@@ -99,12 +113,12 @@ bool CyanPDF::isFileType(const QString &filename,
     return (startsWith? type.name().startsWith(mime) : type.name() == mime);
 }
 
-bool CyanPDF::isPDF(const QString &filename)
+const bool CyanPDF::isPDF(const QString &filename)
 {
     return isFileType(filename, "application/pdf");
 }
 
-bool CyanPDF::isICC(const QString &filename)
+const bool CyanPDF::isICC(const QString &filename)
 {
     return isFileType(filename, "application/vnd.iccprofile");
 }

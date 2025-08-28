@@ -15,6 +15,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
 
+find_package(PkgConfig QUIET)
+pkg_search_module(LCMS2 REQUIRED lcms2)
+
 set(PROJECT_SOURCES
         main.cpp
         cyanpdf.cpp
@@ -29,7 +32,10 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     )
 endif()
 
+target_include_directories(CyanPDF PRIVATE ${LCMS2_INCLUDE_DIRS})
+
 target_link_libraries(CyanPDF PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
+target_link_libraries(CyanPDF PRIVATE ${LCMS2_LIBRARIES} ${LCMS2_LDFLAGS})
 
 if(${QT_VERSION} VERSION_LESS 6.1.0)
   set(BUNDLE_ID_OPTION MACOSX_BUNDLE_GUI_IDENTIFIER graphics.cyan.pdf)
