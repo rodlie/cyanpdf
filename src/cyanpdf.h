@@ -26,13 +26,15 @@ public:
         Perceptual,
         Colorimetric,
         Saturation,
-        AbsoluteColorimetric
+        AbsoluteColorimetric,
+        NoIntent
     };
 
     enum ColorSpace {
         RGB,
         CMYK,
-        GRAY
+        GRAY,
+        NA
     };
 
     const QString getGhostscript(bool pathOnly = false);
@@ -45,10 +47,13 @@ public:
                                  const QString &outputIcc,
                                  const int &colorSpace = ColorSpace::CMYK,
                                  const int &renderIntent = RenderIntent::Colorimetric,
-                                 const bool blackPoint = true);
+                                 const bool &blackPoint = true);
+    const int getColorspace(const QString &profile);
+    const QStringList getProfiles(const int &colorspace);
+    const QString getProfileName(const QString &profile);
     const bool isFileType(const QString &filename,
                           const QString &mime,
-                          bool startsWith = false);
+                          const bool &startsWith = false);
     const bool isPDF(const QString &filename);
     const bool isICC(const QString &filename);
 

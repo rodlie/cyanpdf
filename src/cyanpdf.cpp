@@ -58,7 +58,6 @@ const QString CyanPDF::getGhostscript(bool pathOnly)
 
 const QString CyanPDF::getPostscript(const QString &profile)
 {
-    if (!isICC(profile)) { return QString(); }
     // TODO
     return QString();
 }
@@ -93,15 +92,33 @@ const QString CyanPDF::getConvertArgs(const QString &inputFile,
                                       const QString &outputIcc,
                                       const int &colorSpace,
                                       const int &renderIntent,
-                                      const bool blackPoint)
+                                      const bool &blackPoint)
 {
     // TODO
     return QString();
 }
 
+const int CyanPDF::getColorspace(const QString &profile)
+{
+    // TODO
+    return ColorSpace::NA;
+}
+
+const QStringList CyanPDF::getProfiles(const int &colorspace)
+{
+    // TODO
+    return QStringList();
+}
+
+const QString CyanPDF::getProfileName(const QString &profile)
+{
+    // TODO
+    return profile;
+}
+
 const bool CyanPDF::isFileType(const QString &filename,
-                         const QString &mime,
-                         bool startsWith)
+                               const QString &mime,
+                               const bool &startsWith)
 {
     if (!QFile::exists(filename)) { return false; }
     QMimeDatabase db;
