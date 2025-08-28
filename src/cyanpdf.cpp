@@ -12,6 +12,7 @@
 #include <QMimeDatabase>
 #include <QMimeType>
 #include <QCryptographicHash>
+#include <QStandardPaths>
 
 #include <lcms2.h>
 
@@ -46,17 +47,13 @@ const QString CyanPDF::getGhostscript(bool pathOnly)
         QString bin32 = folder + "/bin/gswin32c.exe";
         if (QFile::exists(bin32)) { return pathOnly ? folder : bin32; }
     }
-    return QString();
 #endif
-// TODO
-#ifdef Q_OS_MAC
-    if (pathOnly) { return QString(); }
-    QStringList gs;
-    gs << "/opt/local/bin/gs" << "/usr/local/bin/gs";
-    for (int i = 0; i < gs.size(); ++i) { if (QFile::exists(gs.at(i))) { return gs.at(i); } }
-    return QString();
-#endif
-    return pathOnly ? QString() : QString("gs");
+    QString gs = QStandardPaths::findExecutable("gs");
+    if (gs.isEmpty()) {
+        gs = QStandardPaths::findExecutable("gs", {"/opt/local/bin", "/usr/local/bin"});
+    }
+    QFileInfo info(gs);
+    return pathOnly ? info.absoluteDir().absolutePath() : info.absoluteFilePath();
 }
 
 const QString CyanPDF::getPostscript(const QString &profile)
@@ -109,7 +106,6 @@ const bool CyanPDF::isFileType(const QString &filename,
     if (!QFile::exists(filename)) { return false; }
     QMimeDatabase db;
     QMimeType type = db.mimeTypeForFile(filename);
-    qDebug() << "mime type" << filename << type.name();
     return (startsWith? type.name().startsWith(mime) : type.name() == mime);
 }
 
