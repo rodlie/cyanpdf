@@ -38,6 +38,7 @@ public:
     };
 
     const QString getGhostscript(bool pathOnly = false);
+    const QString getGhostscriptVersion();
     const QString getPostscript(const QString &profile);
     const QString getCachePath();
     const QString getChecksum(const QString &filename);

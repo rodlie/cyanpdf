@@ -13,6 +13,7 @@
 #include <QMimeType>
 #include <QCryptographicHash>
 #include <QStandardPaths>
+#include <QProcess>
 
 #include <lcms2.h>
 
@@ -21,6 +22,7 @@ CyanPDF::CyanPDF(QWidget *parent)
     , ui(new Ui::CyanPDF)
 {
     ui->setupUi(this);
+    qDebug() << "Ghostscript?" << getGhostscript() << getGhostscriptVersion();
 }
 
 CyanPDF::~CyanPDF()
@@ -54,6 +56,20 @@ const QString CyanPDF::getGhostscript(bool pathOnly)
     }
     QFileInfo info(gs);
     return pathOnly ? info.absoluteDir().absolutePath() : info.absoluteFilePath();
+}
+
+const QString CyanPDF::getGhostscriptVersion()
+{
+    const QString gs = getGhostscript();
+    if (!QFile::exists(gs)) { return QString(); }
+    QProcess proc;
+    proc.start(gs, {"--version"});
+    if (proc.waitForStarted()) {
+        proc.waitForFinished();
+        QByteArray result = proc.readAll();
+        if (proc.exitCode() == 0) { return result.trimmed(); }
+    }
+    return QString();
 }
 
 const QString CyanPDF::getPostscript(const QString &profile)
