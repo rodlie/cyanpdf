@@ -16,6 +16,10 @@
 #include <QProcess>
 #include <QRegularExpression>
 
+#ifdef Q_OS_WIN
+#include <QDirIterator>
+#endif
+
 #include <lcms2.h>
 
 CyanPDF::CyanPDF(QWidget *parent)
@@ -42,7 +46,7 @@ const QString CyanPDF::getGhostscript(bool pathOnly)
         if (QFile::exists(bin32)) { return pathOnly ? appDir : bin32; }
     }
     QString programFilesPath(qgetenv("PROGRAMFILES"));
-    QDirIterator it(programFilesPath + "/gs", QStringList() << "*.*", QDir::Dirs/*, QDirIterator::Subdirectories*/);
+    QDirIterator it(programFilesPath + "/gs", {"*.*"}, QDir::Dirs);
     while (it.hasNext()) {
         QString folder = it.next();
         QString bin64 = folder + "/bin/gswin64c.exe";
@@ -73,9 +77,10 @@ const QString CyanPDF::getGhostscriptVersion()
     return QString();
 }
 
-const QString CyanPDF::getPostscript(const QString &profile)
+const QString CyanPDF::getPostscript(const QString &filename,
+                                     const QString &profile)
 {
-    if (!isICC(profile)) { return QString(); }
+    if (!isPDF(filename) || !isICC(profile)) { return QString(); }
 
     const QString gsPath = getGhostscript(true);
     if (!QFile::exists(gsPath)) { return QString(); }
@@ -93,10 +98,10 @@ const QString CyanPDF::getPostscript(const QString &profile)
     }
 
     if (!content.isEmpty()) {
-        const QString output = QString("%1/PDFX_def.ps").arg(getCachePath());
         QRegularExpression regex("/ICCProfile \\([^)]*\\) def");
-        QString replacement = QString("/ICCProfile (%1) def").arg(profile);
-        QString modified = content.replace(regex, replacement);
+        const QString output = QString("%1/%2.ps").arg(getCachePath(), getChecksum(filename));
+        const QString replacement = QString("/ICCProfile (%1) def").arg(profile);
+        const QString modified = content.replace(regex, replacement);
         QFile newFile(output);
         if (newFile.open(QIODevice::WriteOnly | QIODevice::Text)) {
             newFile.write(modified.toUtf8());
@@ -143,8 +148,8 @@ const QStringList CyanPDF::getConvertArgs(const QString &inputFile,
                                           const bool &blackPoint)
 {
     QStringList args;
-    QString cs = colorSpace == ColorSpace::CMYK ? "CMYK" : "GRAY";
-    QString ps = getPostscript(outputIcc);
+    const QString cs = colorSpace == ColorSpace::CMYK ? "CMYK" : "GRAY";
+    const QString ps = getPostscript(inputFile, outputIcc);
 
     if (!QFile::exists(ps) ||
         !isICC(defRgbIcc) ||
