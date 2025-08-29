@@ -14,6 +14,7 @@
 #include <QCryptographicHash>
 #include <QStandardPaths>
 #include <QProcess>
+#include <QRegularExpression>
 
 #include <lcms2.h>
 
@@ -74,7 +75,36 @@ const QString CyanPDF::getGhostscriptVersion()
 
 const QString CyanPDF::getPostscript(const QString &profile)
 {
-    // TODO
+    if (!isICC(profile)) { return QString(); }
+
+    const QString gsPath = getGhostscript(true);
+    if (!QFile::exists(gsPath)) { return QString(); }
+
+    const QString gsVer = getGhostscriptVersion();
+    if (gsVer.isEmpty()) { return QString(); }
+
+    const QString ps = QString("%1/../share/ghostscript/%2/lib/PDFX_def.ps").arg(gsPath, gsVer);
+
+    QFile file(ps);
+    QString content;
+    if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        content = file.readAll();
+        file.close();
+    }
+
+    if (!content.isEmpty()) {
+        const QString output = QString("%1/PDFX_def.ps").arg(getCachePath());
+        QRegularExpression regex("/ICCProfile \\([^)]*\\) def");
+        QString replacement = QString("/ICCProfile (%1) def").arg(profile);
+        QString modified = content.replace(regex, replacement);
+        QFile newFile(output);
+        if (newFile.open(QIODevice::WriteOnly | QIODevice::Text)) {
+            newFile.write(modified.toUtf8());
+            newFile.close();
+            return output;
+        }
+    }
+
     return QString();
 }
 
