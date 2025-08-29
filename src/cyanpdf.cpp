@@ -100,8 +100,26 @@ const QString CyanPDF::getConvertArgs(const QString &inputFile,
 
 const int CyanPDF::getColorspace(const QString &profile)
 {
-    // TODO
-    return ColorSpace::NA;
+    int result = ColorSpace::NA;
+    if (!isICC(profile)) { return result; }
+    auto hprofile = cmsOpenProfileFromFile(profile.toStdString().c_str(), "r");
+    if (hprofile) {
+        auto space = cmsGetColorSpace(hprofile);
+        switch (space) {
+        case cmsSigRgbData:
+            result = ColorSpace::RGB;
+            break;
+        case cmsSigCmykData:
+            result = ColorSpace::CMYK;
+            break;
+        case cmsSigGrayData:
+            result = ColorSpace::GRAY;
+            break;
+        default:;
+        }
+    }
+    cmsCloseProfile(hprofile);
+    return result;
 }
 
 const QStringList CyanPDF::getProfiles(const int &colorspace)
@@ -112,8 +130,30 @@ const QStringList CyanPDF::getProfiles(const int &colorspace)
 
 const QString CyanPDF::getProfileName(const QString &profile)
 {
-    // TODO
-    return profile;
+    QString result;
+    if (!isICC(profile)) { return result; }
+    auto hprofile = cmsOpenProfileFromFile(profile.toStdString().c_str(), "r");
+    if (hprofile) {
+        cmsUInt32Number size = 0;
+        size = cmsGetProfileInfoASCII(hprofile,
+                                      cmsInfoDescription,
+                                      "en",
+                                      "US",
+                                      nullptr,
+                                      0);
+        if (size > 0) {
+            std::vector<char> buffer(size);
+            cmsUInt32Number newsize = cmsGetProfileInfoASCII(hprofile,
+                                                             cmsInfoDescription,
+                                                             "en",
+                                                             "US",
+                                                             &buffer[0],
+                                                             size);
+            if (size == newsize) { result = buffer.data(); }
+        }
+    }
+    cmsCloseProfile(hprofile);
+    return result.isEmpty() ? profile : result;
 }
 
 const bool CyanPDF::isFileType(const QString &filename,
