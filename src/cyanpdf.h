@@ -42,13 +42,15 @@ public:
     const QString getPostscript(const QString &profile);
     const QString getCachePath();
     const QString getChecksum(const QString &filename);
-    const QString getConvertArgs(const QString &inputFile,
-                                 const QString &inputIcc,
-                                 const QString &outputFile,
-                                 const QString &outputIcc,
-                                 const int &colorSpace = ColorSpace::CMYK,
-                                 const int &renderIntent = RenderIntent::Colorimetric,
-                                 const bool &blackPoint = true);
+    const QStringList getConvertArgs(const QString &inputFile,
+                                     const QString &outputFile,
+                                     const QString &outputIcc,
+                                     const QString defRgbIcc,
+                                     const QString defGrayIcc,
+                                     const QString defCmykIcc,
+                                     const int &colorSpace = ColorSpace::CMYK,
+                                     const int &renderIntent = RenderIntent::Colorimetric,
+                                     const bool &blackPoint = true);
     const int getColorspace(const QString &profile);
     const QStringList getProfiles(const int &colorspace);
     const QString getProfileName(const QString &profile);

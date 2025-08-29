@@ -102,16 +102,47 @@ const QString CyanPDF::getChecksum(const QString &filename)
     return result;
 }
 
-const QString CyanPDF::getConvertArgs(const QString &inputFile,
-                                      const QString &inputIcc,
-                                      const QString &outputFile,
-                                      const QString &outputIcc,
-                                      const int &colorSpace,
-                                      const int &renderIntent,
-                                      const bool &blackPoint)
+const QStringList CyanPDF::getConvertArgs(const QString &inputFile,
+                                          const QString &outputFile,
+                                          const QString &outputIcc,
+                                          const QString defRgbIcc,
+                                          const QString defGrayIcc,
+                                          const QString defCmykIcc,
+                                          const int &colorSpace,
+                                          const int &renderIntent,
+                                          const bool &blackPoint)
 {
-    // TODO
-    return QString();
+    QStringList args;
+    QString cs = colorSpace == ColorSpace::CMYK ? "CMYK" : "GRAY";
+    QString ps = getPostscript(outputIcc);
+
+    if (!QFile::exists(ps) ||
+        !isICC(defRgbIcc) ||
+        !isICC(defGrayIcc) ||
+        !isICC(defCmykIcc) ||
+        !isICC(outputIcc) ||
+        !isPDF(inputFile)) { return args; }
+
+    if (getColorspace(defRgbIcc) != ColorSpace::RGB ||
+        getColorspace(defGrayIcc) != ColorSpace::GRAY ||
+        getColorspace(defCmykIcc) != ColorSpace::CMYK ||
+        getColorspace(outputIcc) != colorSpace) { return args; }
+
+    args << "-dPDFX" << "-dBATCH" << "-dNOPAUSE" << "-dNOSAFER" << "-sDEVICE=pdfwrite"
+         << "-dOverrideICC=true" << "-dEncodeColorImages=true" << "-dEmbedAllFonts=true"
+         << QString("-sProcessColorModel=Device%1").arg(cs)
+         << QString("-sColorConversionStrategy=%1").arg(cs)
+         << QString("-sColorConversionStrategyForImages=%1").arg(cs)
+         << QString("-dRenderIntent=%1").arg(QString::number(renderIntent))
+         << QString("-dPreserveBlack=%1").arg(blackPoint ? "true" : "false")
+         << QString("-sDefaultRGBProfile=\"%1\"").arg(defRgbIcc)
+         << QString("-sDefaultGrayProfile=\"%1\"").arg(defGrayIcc)
+         << QString("-sDefaultCMYKProfile=\"%1\"").arg(defCmykIcc)
+         << QString("-sOutputICCProfile=\"%1\"").arg(outputIcc)
+         << QString("-sOutputFile=\"%1\"").arg(outputFile)
+         << QString("\"%1\"").arg(ps)
+         << QString("\"%1\"").arg(inputFile);
+    return args;
 }
 
 const int CyanPDF::getColorspace(const QString &profile)
