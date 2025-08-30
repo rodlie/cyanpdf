@@ -219,7 +219,6 @@ const QStringList CyanPDF::getProfiles(const int &colorspace)
     for (const QString &path : common) { folders << QString("%1/color/icc").arg(path); }
 #endif
     folders << QDir::homePath() + "/.color/icc";
-    folders << mProfileBundlePath;
 
     QStringList profiles;
     for (const QString &path : folders) {
@@ -291,11 +290,6 @@ void CyanPDF::setupWidgets()
 {
     // TODO
     QTimer::singleShot(10, this, &CyanPDF::readSettings);
-}
-
-void CyanPDF::setupProfiles()
-{
-    // TODO
 }
 
 void CyanPDF::populateProfiles()

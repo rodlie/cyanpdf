@@ -68,7 +68,6 @@ public:
 
     void setupWidgets();
 
-    void setupProfiles();
     void populateProfiles();
 
     void readSettings();
@@ -81,7 +80,6 @@ private slots:
 
 private:
     Ui::CyanPDF *ui;
-    QString mProfileBundlePath;
 };
 
 #endif // CYANPDF_H
