@@ -5,6 +5,7 @@ cmake_minimum_required(VERSION 3.16)
 
 project(CyanPDF VERSION 0.1 LANGUAGES CXX)
 
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
@@ -19,10 +20,10 @@ find_package(PkgConfig QUIET)
 pkg_search_module(LCMS2 REQUIRED lcms2)
 
 set(PROJECT_SOURCES
-        main.cpp
-        cyanpdf.cpp
-        cyanpdf.h
-        cyanpdf.ui
+        src/main.cpp
+        src/cyanpdf.cpp
+        src/cyanpdf.h
+        src/cyanpdf.ui
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
