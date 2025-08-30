@@ -28,9 +28,9 @@ if(CMAKE_BUILD_TYPE MATCHES "^(release|Release|RELEASE)$")
 endif()
 
 set(PROJECT_SOURCES
-    src/main.cpp
-    src/cyanpdf.cpp
-    src/cyanpdf.h
+    main.cpp
+    cyanpdf.cpp
+    cyanpdf.h
     cyanpdf.qrc
 )
 
