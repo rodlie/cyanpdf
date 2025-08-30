@@ -13,7 +13,7 @@ A simple tool designed to convert any PDF into a prepress-ready PDF/X document, 
 ### Requirements
 
 ```
-sudo apt install ghostscript qt6-base-dev qt6-pdf-dev qt6-svg-dev
+sudo apt install ghostscript liblcms2-dev qt6-base-dev qt6-pdf-dev qt6-svg-dev
 ```
 
 You will also need a collection of ICC color profiles.
