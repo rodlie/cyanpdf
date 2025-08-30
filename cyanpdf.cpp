@@ -407,6 +407,7 @@ void CyanPDF::setupWidgets()
 
     const auto buttonOpen = new QPushButton(this);
     buttonOpen->setText(tr("Open"));
+    buttonOpen->setShortcut(QKeySequence("Ctrl+O"));
     QIcon iconOpen = QIcon::fromTheme("document-open");
     if (iconOpen.isNull()) { iconOpen = QIcon::fromTheme("document-open-symbolic"); }
     buttonOpen->setIcon(iconOpen);
@@ -421,6 +422,7 @@ void CyanPDF::setupWidgets()
 
     const auto buttonSave = new QPushButton(this);
     buttonSave->setText(tr("Save"));
+    buttonSave->setShortcut(QKeySequence("Ctrl+S"));
     QIcon iconSave = QIcon::fromTheme("document-save");
     if (iconSave.isNull()) { iconSave = QIcon::fromTheme("document-save-symbolic"); }
     buttonSave->setIcon(iconSave);
@@ -433,8 +435,19 @@ void CyanPDF::setupWidgets()
         savePDF(filename);
     });
 
+    const auto buttonClose = new QPushButton(this);
+    buttonClose->setText(tr("Quit"));
+    buttonClose->setShortcut(QKeySequence("Ctrl+Q"));
+    QIcon iconClose = QIcon::fromTheme("application-exit");
+    if (iconClose.isNull()) { iconClose = QIcon::fromTheme("application-exit-symbolic"); }
+    buttonClose->setIcon(iconClose);
+    connect(buttonClose, &QPushButton::released,
+            this, &QMainWindow::close);
+
     buttonLay->addWidget(buttonOpen);
     buttonLay->addWidget(buttonSave);
+    buttonLay->addStretch();
+    buttonLay->addWidget(buttonClose);
 
     sideLay->addWidget(appLabel);
     sideLay->addSpacing(10);
