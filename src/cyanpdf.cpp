@@ -16,17 +16,35 @@
 #include <QRegularExpression>
 #include <QDirIterator>
 #include <QTimer>
+#include <QImage>
+#include <QHBoxLayout>
+#include <QVBoxLayout>
+#include <QPushButton>
+#include <QFileDialog>
+#include <QSettings>
+#include <QMessageBox>
 
 #include <lcms2.h>
 
 CyanPDF::CyanPDF(QWidget *parent)
     : QMainWindow(parent)
+    , mDocument(nullptr)
+    , mRenderer(nullptr)
+    , mLabel(nullptr)
+    , mComboDefRgb(nullptr)
+    , mComboDefCmyk(nullptr)
+    , mComboDefGray(nullptr)
+    , mComboOutIcc(nullptr)
+    , mComboRenderIntent(nullptr)
+    , mCheckBlackPoint(nullptr)
+    , mSpecsList(nullptr)
 {
     setupWidgets();
 }
 
 CyanPDF::~CyanPDF()
 {
+    mDocument->close();
     writeSettings();
 }
 
@@ -285,23 +303,426 @@ const bool CyanPDF::isICC(const QString &filename)
 void CyanPDF::setupWidgets()
 {
     setWindowTitle("Cyan PDF");
-    setWindowIcon(QIcon(":/docs/logo.svg"));
+    setWindowIcon(QIcon(":/docs/graphics.cyan.pdf.svg"));
+    setFixedSize({800, 600});
 
-    // TODO
+    mDocument = new QPdfDocument(this);
+    mRenderer = new QPdfPageRenderer(this);
+
+    mLabel = new QLabel(this);
+    mLabel->setScaledContents(false);
+    mLabel->setFixedWidth(400);
+    mLabel->setBackgroundRole(QPalette::Dark);
+    mLabel->setAutoFillBackground(true);
+
+    mComboDefRgb = new ComboBox(this);
+    mComboDefCmyk = new ComboBox(this);
+    mComboDefGray = new ComboBox(this);
+    mComboOutIcc = new ComboBox(this);
+    mComboRenderIntent = new ComboBox(this);
+
+    mCheckBlackPoint = new QCheckBox(this);
+    mCheckBlackPoint->setText(tr("Black Point"));
+
+    mSpecsList = new QTreeWidget(this);
+    mSpecsList->setHeaderLabels({tr("Key"), tr("Value")});
+    mSpecsList->setHeaderHidden(true);
+    mSpecsList->setDropIndicatorShown(false);
+    mSpecsList->setIndentation(0);
+
+    mComboDefRgb->setObjectName("rgb");
+    mComboDefCmyk->setObjectName("cmyk");
+    mComboDefGray->setObjectName("gray");
+    mComboOutIcc->setObjectName("output");
+    mComboRenderIntent->setObjectName("intent");
+
+    mComboDefRgb->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+    mComboDefCmyk->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+    mComboDefGray->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+    mComboOutIcc->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+    mComboRenderIntent->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+    mCheckBlackPoint->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
+
+    const auto rgbWid = new QWidget(this);
+    const auto rgbLay = new QHBoxLayout(rgbWid);
+    const auto cmykWid = new QWidget(this);
+    const auto cmykLay = new QHBoxLayout(cmykWid);
+    const auto grayWid = new QWidget(this);
+    const auto grayLay = new QHBoxLayout(grayWid);
+    const auto intentWid = new QWidget(this);
+    const auto intentLay = new QHBoxLayout(intentWid);
+    const auto outputWid = new QWidget(this);
+    const auto outputLay = new QHBoxLayout(outputWid);
+    const auto extraWid = new QWidget(this);
+    const auto extraLay = new QHBoxLayout(extraWid);
+    const auto buttonWid = new QWidget(this);
+    const auto buttonLay = new QHBoxLayout(buttonWid);
+    const auto sideWid = new QWidget(this);
+    const auto sideLay = new QVBoxLayout(sideWid);
+
+    const auto margins = QMargins(0, 0, 0, 0);
+    rgbWid->setContentsMargins(margins);
+    rgbLay->setContentsMargins(margins);
+    cmykWid->setContentsMargins(margins);
+    cmykLay->setContentsMargins(margins);
+    grayWid->setContentsMargins(margins);
+    grayLay->setContentsMargins(margins);
+    intentWid->setContentsMargins(margins);
+    intentLay->setContentsMargins(margins);
+    outputWid->setContentsMargins(margins);
+    outputLay->setContentsMargins(margins);
+    extraWid->setContentsMargins(margins);
+    extraLay->setContentsMargins(margins);
+    buttonWid->setContentsMargins(margins);
+    buttonLay->setContentsMargins(margins);
+
+    auto sideMargins = sideWid->contentsMargins();
+    sideMargins.setBottom(0);
+    sideWid->setContentsMargins(sideMargins);
+    sideLay->setContentsMargins(sideMargins);
+
+    rgbLay->addWidget(new QLabel(tr("RGB Profile"), this), Qt::AlignLeft);
+    rgbLay->addWidget(mComboDefRgb, Qt::AlignRight);
+
+    cmykLay->addWidget(new QLabel(tr("CMYK Profile"), this), Qt::AlignLeft);
+    cmykLay->addWidget(mComboDefCmyk, Qt::AlignRight);
+
+    grayLay->addWidget(new QLabel(tr("GRAY Profile"), this), Qt::AlignLeft);
+    grayLay->addWidget(mComboDefGray, Qt::AlignRight);
+
+    intentLay->addWidget(new QLabel(tr("Rendering Intent"), this), Qt::AlignLeft);
+    intentLay->addWidget(mComboRenderIntent, Qt::AlignRight);
+
+    outputLay->addWidget(new QLabel(tr("Output Profile"), this), Qt::AlignLeft);
+    outputLay->addWidget(mComboOutIcc, Qt::AlignRight);
+
+    extraLay->addWidget(new QWidget(this), Qt::AlignLeft);
+    extraLay->addWidget(mCheckBlackPoint, Qt::AlignRight);
+
+    const auto appLabel = new QLabel(this);
+    appLabel->setFixedHeight(128);
+    appLabel->setScaledContents(false);
+    appLabel->setAlignment(Qt::AlignCenter);
+    appLabel->setPixmap(QPixmap(":/docs/graphics.cyan.pdf.svg"));
+
+    const auto buttonOpen = new QPushButton(this);
+    buttonOpen->setText(tr("Open"));
+    QIcon iconOpen = QIcon::fromTheme("document-open");
+    if (iconOpen.isNull()) { iconOpen = QIcon::fromTheme("document-open-symbolic"); }
+    buttonOpen->setIcon(iconOpen);
+    connect(buttonOpen, &QPushButton::released,
+            this, [this]{
+        const QString filename = QFileDialog::getOpenFileName(this,
+                                                              tr("Open PDF"),
+                                                              getLastOpenPath(),
+                                                              "*.pdf");
+        loadPDF(filename);
+    });
+
+    const auto buttonSave = new QPushButton(this);
+    buttonSave->setText(tr("Save"));
+    QIcon iconSave = QIcon::fromTheme("document-save");
+    if (iconSave.isNull()) { iconSave = QIcon::fromTheme("document-save-symbolic"); }
+    buttonSave->setIcon(iconSave);
+    connect(buttonSave, &QPushButton::released,
+            this, [this]{
+        const QString filename = QFileDialog::getSaveFileName(this,
+                                                              tr("Save PDF"),
+                                                              getLastSavePath(),
+                                                              "*.pdf");
+        savePDF(filename);
+    });
+
+    buttonLay->addWidget(buttonOpen);
+    buttonLay->addWidget(buttonSave);
+
+    sideLay->addWidget(appLabel);
+    sideLay->addSpacing(10);
+    sideLay->addWidget(rgbWid);
+    sideLay->addWidget(cmykWid);
+    sideLay->addWidget(grayWid);
+    sideLay->addSpacing(10);
+    sideLay->addWidget(outputWid);
+    sideLay->addWidget(intentWid);
+    sideLay->addWidget(extraWid);
+    sideLay->addWidget(mSpecsList);
+    sideLay->addWidget(buttonWid);
+
+    const auto wid = new QWidget(this);
+    const auto lay = new QHBoxLayout(wid);
+
+    setCentralWidget(wid);
+    lay->addWidget(mLabel);
+    lay->addWidget(sideWid);
+
+    populateComboBoxes();
+
     QTimer::singleShot(10, this, &CyanPDF::readSettings);
 }
 
-void CyanPDF::populateProfiles()
+void CyanPDF::populateComboBoxes()
 {
-    // TODO
+    const auto rgbProfiles = getProfiles(ColorSpace::RGB);
+    const auto cmykProfiles = getProfiles(ColorSpace::CMYK);
+    const auto grayProfiles = getProfiles(ColorSpace::GRAY);
+
+    mComboDefRgb->clear();
+    mComboDefCmyk->clear();
+    mComboDefGray->clear();
+
+    QIcon iconPrint = QIcon::fromTheme("document-print");
+    if (iconPrint.isNull()) { iconPrint = QIcon::fromTheme("document-print-symbolic"); }
+    QIcon iconDef = QIcon::fromTheme("applications-graphics");
+    if (iconDef.isNull()) { iconDef = QIcon::fromTheme("applications-graphics-symbolic"); }
+
+    for (const QString &icc: rgbProfiles) {
+        mComboDefRgb->addItem(iconDef, getProfileName(icc), icc);
+    }
+    for (const QString &icc: cmykProfiles) {
+        mComboDefCmyk->addItem(iconDef, getProfileName(icc), icc);
+        mComboOutIcc->addItem(iconPrint, getProfileName(icc), icc);
+    }
+    for (const QString &icc: grayProfiles) {
+        mComboDefGray->addItem(iconDef, getProfileName(icc), icc);
+        mComboOutIcc->addItem(iconPrint, getProfileName(icc), icc);
+    }
+
+    mComboRenderIntent->addItem(iconDef, tr("Perceptual"), 0);
+    mComboRenderIntent->addItem(iconDef, tr("Relative Colorimetric"), 1);
+    mComboRenderIntent->addItem(iconDef, tr("Saturation"), 2);
+    mComboRenderIntent->addItem(iconDef, tr("Absolute Colorimetric"), 3);
 }
 
 void CyanPDF::readSettings()
 {
-    // TODO
+    QSettings settings;
+    settings.beginGroup("cyanpdf");
+
+    if (settings.value("rgb").isValid()) {
+        {
+            int index = mComboDefRgb->findData(settings.value("rgb").toString());
+            if (index != -1) { mComboDefRgb->setCurrentIndex(index); }
+        }
+    } else {
+        {
+            int index = mComboDefRgb->findText("Adobe RGB (1998)");
+            if (index != -1) { mComboDefRgb->setCurrentIndex(index); }
+            else {
+                index = mComboDefRgb->findText("sRGB");
+                if (index != -1) { mComboDefRgb->setCurrentIndex(index); }
+                else {
+                    index = mComboDefRgb->findText("Artifex PS RGB Profile");
+                    if (index != -1) { mComboDefRgb->setCurrentIndex(index); }
+                }
+            }
+        }
+    }
+    if (settings.value("cmyk").isValid()) {
+        {
+            int index = mComboDefCmyk->findData(settings.value("cmyk").toString());
+            if (index != -1) { mComboDefCmyk->setCurrentIndex(index); }
+        }
+    } else {
+        {
+            int index = mComboDefCmyk->findText("ISO Coated v2 (ECI)");
+            if (index != -1) { mComboDefCmyk->setCurrentIndex(index); }
+            else {
+                index = mComboDefCmyk->findText("U.S. Web Coated (SWOP) v2");
+                if (index != -1) { mComboDefCmyk->setCurrentIndex(index); }
+                else {
+                    index = mComboDefCmyk->findText("Artifex PS CMYK Profile");
+                    if (index != -1) { mComboDefCmyk->setCurrentIndex(index); }
+                }
+            }
+        }
+    }
+    if (settings.value("gray").isValid()) {
+        {
+            int index = mComboDefGray->findData(settings.value("gray").toString());
+            if (index != -1) { mComboDefGray->setCurrentIndex(index); }
+        }
+    } else {
+        {
+            int index = mComboDefGray->findText("Gray");
+            if (index != -1) { mComboDefGray->setCurrentIndex(index); }
+            else {
+                index = mComboDefGray->findText("Artifex PS Gray Profile");
+                if (index != -1) { mComboDefGray->setCurrentIndex(index); }
+            }
+        }
+    }
+    if (settings.value("output").isValid()) {
+        {
+            int index = mComboOutIcc->findData(settings.value("output").toString());
+            if (index != -1) { mComboOutIcc->setCurrentIndex(index); }
+        }
+    } else {
+        {
+            int index = mComboOutIcc->findText(mComboDefCmyk->currentText());
+            if (index != -1) { mComboOutIcc->setCurrentIndex(index); }
+        }
+    }
+
+    mComboRenderIntent->setCurrentIndex(settings.value("intent", 1).toInt());
+    mCheckBlackPoint->setChecked(settings.value("blackpont", true).toBool());
+
+    settings.endGroup();
+
+    connect(mCheckBlackPoint, &QCheckBox::stateChanged,
+            this, [](int state) {
+        QSettings settings;
+        settings.beginGroup("cyanpdf");
+        settings.setValue("blackpoint", state == Qt::Checked ? true : false);
+        settings.endGroup();
+    });
+
+    connectCombobox(mComboDefRgb);
+    connectCombobox(mComboDefCmyk);
+    connectCombobox(mComboDefGray);
+    connectCombobox(mComboOutIcc);
+    connectCombobox(mComboRenderIntent);
 }
 
 void CyanPDF::writeSettings()
 {
+    // TODO
+}
+
+void CyanPDF::setLastOpenPath(const QString &path)
+{
+    QSettings settings;
+    settings.beginGroup("cyanpdf");
+    settings.setValue("LastOpenPath", path);
+    settings.endGroup();
+}
+
+const QString CyanPDF::getLastOpenPath()
+{
+    QString path;
+    QSettings settings;
+    settings.beginGroup("cyanpdf");
+    path = settings.value("LastOpenPath", QDir::homePath()).toString();
+    settings.endGroup();
+    return path;
+}
+
+void CyanPDF::setLastSavePath(const QString &path)
+{
+    QSettings settings;
+    settings.beginGroup("cyanpdf");
+    settings.setValue("LastSavePath", path);
+    settings.endGroup();
+}
+
+const QString CyanPDF::getLastSavePath()
+{
+    QString path;
+    QSettings settings;
+    settings.beginGroup("cyanpdf");
+    path = settings.value("LastSavePath", QDir::homePath()).toString();
+    settings.endGroup();
+    return path;
+}
+
+void CyanPDF::connectCombobox(QComboBox *box)
+{
+    if (!box) { return; }
+    connect(box, &QComboBox::currentIndexChanged,
+            this, [this, box](int index) {
+        const auto val = box->itemData(index).toString();
+        QSettings settings;
+        settings.beginGroup("cyanpdf");
+        settings.setValue(box->objectName(), val);
+        settings.endGroup();
+    });
+}
+
+void CyanPDF::loadPDF(const QString &filename)
+{
+    if (!isPDF(filename)) { return; }
+
+    mSpecsList->clear();
+    mDocument->close();
+    mFilename.clear();
+
+    setLastOpenPath(QFileInfo(filename).absolutePath());
+
+    if (mDocument->load(filename) == QPdfDocument::Error::None) {
+        mFilename = filename;
+
+        QString title = mDocument->metaData(QPdfDocument::MetaDataField::Title).toString();
+        QString subject = mDocument->metaData(QPdfDocument::MetaDataField::Subject).toString();
+        QString author = mDocument->metaData(QPdfDocument::MetaDataField::Author).toString();
+        QString producer = mDocument->metaData(QPdfDocument::MetaDataField::Producer).toString();
+        QString creator = mDocument->metaData(QPdfDocument::MetaDataField::Creator).toString();
+        int pages = mDocument->pageCount();
+
+        if (title.isEmpty()) { title = QFileInfo(filename).fileName(); }
+        {
+            const auto item = new QTreeWidgetItem(mSpecsList);
+            item->setText(0, tr("Title"));
+            item->setText(1, title);
+            mSpecsList->addTopLevelItem(item);
+        }
+        if (!subject.isEmpty()) {
+            {
+                const auto item = new QTreeWidgetItem(mSpecsList);
+                item->setText(0, tr("Subject"));
+                item->setText(1, subject);
+                mSpecsList->addTopLevelItem(item);
+            }
+        }
+        if (!author.isEmpty()) {
+            {
+                const auto item = new QTreeWidgetItem(mSpecsList);
+                item->setText(0, tr("Author"));
+                item->setText(1, author);
+                mSpecsList->addTopLevelItem(item);
+            }
+        }
+        if (!producer.isEmpty()) {
+            {
+                const auto item = new QTreeWidgetItem(mSpecsList);
+                item->setText(0, tr("Producer"));
+                item->setText(1, producer);
+                mSpecsList->addTopLevelItem(item);
+            }
+        }
+        if (!creator.isEmpty()) {
+            {
+                const auto item = new QTreeWidgetItem(mSpecsList);
+                item->setText(0, tr("Creator"));
+                item->setText(1, creator);
+                mSpecsList->addTopLevelItem(item);
+            }
+        }
+        {
+            const auto item = new QTreeWidgetItem(mSpecsList);
+            item->setText(0, tr("Pages"));
+            item->setText(1, QString::number(pages));
+            mSpecsList->addTopLevelItem(item);
+        }
+
+        mRenderer->setDocument(mDocument);
+
+        connect(mRenderer, &QPdfPageRenderer::pageRendered,
+                this, [this](int pageNumber,
+                             QSize imageSize,
+                             const QImage &image,
+                             QPdfDocumentRenderOptions options,
+                             quint64 requestId) {
+            if (!image.isNull()) {
+                mLabel->setPixmap(QPixmap::fromImage(image.scaled(mLabel->size(),
+                                                                  Qt::KeepAspectRatio,
+                                                                  Qt::SmoothTransformation)));
+            }
+        });
+        mRenderer->requestPage(0, mDocument->pagePointSize(0).toSize());
+    }
+}
+
+void CyanPDF::savePDF(const QString &filename)
+{
+    QMessageBox::warning(this, tr("Not implemented"), tr("Feature not implemented yet."));
     // TODO
 }

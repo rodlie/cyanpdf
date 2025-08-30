@@ -15,7 +15,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(DESKTOP_ID "graphics.cyan.pdf")
 
 find_package(QT NAMES Qt6 REQUIRED COMPONENTS Widgets)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Concurrent)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Concurrent Pdf Svg)
 
 find_package(PkgConfig QUIET)
 pkg_search_module(LCMS2 REQUIRED lcms2)
@@ -40,6 +40,8 @@ target_include_directories(cyanpdf PRIVATE ${LCMS2_INCLUDE_DIRS})
 
 target_link_libraries(cyanpdf PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
 target_link_libraries(cyanpdf PRIVATE Qt${QT_VERSION_MAJOR}::Concurrent)
+target_link_libraries(cyanpdf PRIVATE Qt${QT_VERSION_MAJOR}::Pdf)
+target_link_libraries(cyanpdf PRIVATE Qt${QT_VERSION_MAJOR}::Svg)
 target_link_libraries(cyanpdf PRIVATE ${LCMS2_LIBRARIES} ${LCMS2_LDFLAGS})
 
 set(BUNDLE_ID_OPTION MACOSX_BUNDLE_GUI_IDENTIFIER ${DESKTOP_ID})
@@ -58,13 +60,13 @@ install(TARGETS cyanpdf
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 install(FILES
-    docs/logo.svg
-    DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/icons/hicolor/scalable/apps/${DESKTOP_ID}.svg)
+    docs/${DESKTOP_ID}.svg
+    DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/icons/hicolor/scalable/apps)
 install(FILES
-    docs/logo.png
-    DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/icons/hicolor/128x128/apps/${DESKTOP_ID}.png)
+    docs/${DESKTOP_ID}.png
+    DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/icons/hicolor/128x128/apps)
 install(FILES
-    cyanpdf.desktop
-    DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/applications/${DESKTOP_ID}.desktop)
+    docs/${DESKTOP_ID}.desktop
+    DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/applications)
 
 qt_finalize_executable(cyanpdf)

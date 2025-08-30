@@ -7,6 +7,21 @@
 #define CYANPDF_H
 
 #include <QMainWindow>
+#include <QLabel>
+#include <QComboBox>
+#include <QCheckBox>
+#include <QTreeWidget>
+#include <QPdfDocument>
+#include <QPdfPageRenderer>
+
+class ComboBox : public QComboBox
+{
+public:
+    explicit ComboBox(QWidget *parent = nullptr)
+        : QComboBox(parent) {}
+    QSize sizeHint() const override { return minimumSizeHint(); }
+    QSize minimumSizeHint() const override { return QSize(50, QComboBox::minimumSizeHint().height()); }
+};
 
 class CyanPDF : public QMainWindow
 {
@@ -62,10 +77,34 @@ public:
 
     void setupWidgets();
 
-    void populateProfiles();
+    void populateComboBoxes();
 
     void readSettings();
     void writeSettings();
+
+    void setLastOpenPath(const QString &path);
+    const QString getLastOpenPath();
+
+    void setLastSavePath(const QString &path);
+    const QString getLastSavePath();
+
+    void connectCombobox(QComboBox *box);
+
+    void loadPDF(const QString &filename);
+    void savePDF(const QString &filename);
+
+private:
+    QPdfDocument *mDocument;
+    QPdfPageRenderer *mRenderer;
+    QLabel *mLabel;
+    ComboBox *mComboDefRgb;
+    ComboBox *mComboDefCmyk;
+    ComboBox *mComboDefGray;
+    ComboBox *mComboOutIcc;
+    ComboBox *mComboRenderIntent;
+    QCheckBox *mCheckBlackPoint;
+    QTreeWidget *mSpecsList;
+    QString mFilename;
 };
 
 #endif // CYANPDF_H
