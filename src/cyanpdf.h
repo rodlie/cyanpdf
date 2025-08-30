@@ -39,10 +39,13 @@ public:
 
     const QString getGhostscript(bool pathOnly = false);
     const QString getGhostscriptVersion();
+
     const QString getPostscript(const QString &filename,
                                 const QString &profile);
+
     const QString getCachePath();
     const QString getChecksum(const QString &filename);
+
     const QStringList getConvertArgs(const QString &inputFile,
                                      const QString &outputFile,
                                      const QString &outputIcc,
@@ -52,17 +55,28 @@ public:
                                      const int &colorSpace = ColorSpace::CMYK,
                                      const int &renderIntent = RenderIntent::Colorimetric,
                                      const bool &blackPoint = true);
+
     const int getColorspace(const QString &profile);
     const QStringList getProfiles(const int &colorspace);
     const QString getProfileName(const QString &profile);
+
     const bool isFileType(const QString &filename,
                           const QString &mime,
                           const bool &startsWith = false);
     const bool isPDF(const QString &filename);
     const bool isICC(const QString &filename);
 
+    void setupWidgets();
+
+    void setupProfiles();
+    void populateProfiles();
+
+    void readSettings();
+    void writeSettings();
+
 private:
     Ui::CyanPDF *ui;
+    QString mProfileBundlePath;
 };
 
 #endif // CYANPDF_H

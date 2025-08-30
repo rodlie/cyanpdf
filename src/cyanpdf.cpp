@@ -16,6 +16,7 @@
 #include <QProcess>
 #include <QRegularExpression>
 #include <QDirIterator>
+#include <QTimer>
 
 #include <lcms2.h>
 
@@ -24,10 +25,12 @@ CyanPDF::CyanPDF(QWidget *parent)
     , ui(new Ui::CyanPDF)
 {
     ui->setupUi(this);
+    setupWidgets();
 }
 
 CyanPDF::~CyanPDF()
 {
+    writeSettings();
     delete ui;
 }
 
@@ -53,8 +56,11 @@ const QString CyanPDF::getGhostscript(bool pathOnly)
 #endif
     QString gs = QStandardPaths::findExecutable("gs");
     if (gs.isEmpty()) {
-        gs = QStandardPaths::findExecutable("gs", {"/opt/local/bin", "/usr/local/bin"});
+        gs = QStandardPaths::findExecutable("gs", {"/opt/local/bin",
+                                                   "/usr/local/bin"});
     }
+    if (gs.isEmpty()) { return QString(); }
+
     QFileInfo info(gs);
     return pathOnly ? info.absoluteDir().absolutePath() : info.absoluteFilePath();
 }
@@ -213,6 +219,7 @@ const QStringList CyanPDF::getProfiles(const int &colorspace)
     for (const QString &path : common) { folders << QString("%1/color/icc").arg(path); }
 #endif
     folders << QDir::homePath() + "/.color/icc";
+    folders << mProfileBundlePath;
 
     QStringList profiles;
     for (const QString &path : folders) {
@@ -278,4 +285,32 @@ const bool CyanPDF::isPDF(const QString &filename)
 const bool CyanPDF::isICC(const QString &filename)
 {
     return isFileType(filename, "application/vnd.iccprofile");
+}
+
+void CyanPDF::setupWidgets()
+{
+    // TODO
+    setupProfiles();
+    populateProfiles();
+    QTimer::singleShot(10, this, &CyanPDF::readSettings);
+}
+
+void CyanPDF::setupProfiles()
+{
+    // TODO
+}
+
+void CyanPDF::populateProfiles()
+{
+    // TODO
+}
+
+void CyanPDF::readSettings()
+{
+    // TODO
+}
+
+void CyanPDF::writeSettings()
+{
+    // TODO
 }
