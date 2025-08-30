@@ -15,7 +15,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(DESKTOP_ID "graphics.cyan.pdf")
 
 find_package(QT NAMES Qt6 REQUIRED COMPONENTS Widgets)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Concurrent Pdf Svg)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Pdf Svg)
 
 find_package(PkgConfig QUIET)
 pkg_search_module(LCMS2 REQUIRED lcms2)
@@ -38,10 +38,7 @@ qt_add_executable(cyanpdf MANUAL_FINALIZATION ${PROJECT_SOURCES})
 
 target_include_directories(cyanpdf PRIVATE ${LCMS2_INCLUDE_DIRS})
 
-target_link_libraries(cyanpdf PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
-target_link_libraries(cyanpdf PRIVATE Qt${QT_VERSION_MAJOR}::Concurrent)
-target_link_libraries(cyanpdf PRIVATE Qt${QT_VERSION_MAJOR}::Pdf)
-target_link_libraries(cyanpdf PRIVATE Qt${QT_VERSION_MAJOR}::Svg)
+target_link_libraries(cyanpdf PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Pdf Qt${QT_VERSION_MAJOR}::Svg)
 target_link_libraries(cyanpdf PRIVATE ${LCMS2_LIBRARIES} ${LCMS2_LDFLAGS})
 
 set(BUNDLE_ID_OPTION MACOSX_BUNDLE_GUI_IDENTIFIER ${DESKTOP_ID})
