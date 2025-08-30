@@ -314,3 +314,20 @@ void CyanPDF::writeSettings()
 {
     // TODO
 }
+
+void CyanPDF::on_actionOpen_triggered()
+{
+    // TODO
+}
+
+
+void CyanPDF::on_actionSave_triggered()
+{
+    // TODO
+}
+
+
+void CyanPDF::on_actionQuit_triggered()
+{
+    qApp->quit();
+}
