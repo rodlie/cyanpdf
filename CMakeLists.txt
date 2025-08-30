@@ -9,38 +9,31 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
-
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
+find_package(QT NAMES Qt6 REQUIRED COMPONENTS Widgets)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Concurrent)
 
 find_package(PkgConfig QUIET)
 pkg_search_module(LCMS2 REQUIRED lcms2)
 
 set(PROJECT_SOURCES
-        src/main.cpp
-        src/cyanpdf.cpp
-        src/cyanpdf.h
-        src/cyanpdf.ui
+    src/main.cpp
+    src/cyanpdf.cpp
+    src/cyanpdf.h
+    src/cyanpdf.ui
 )
 
-if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
-    qt_add_executable(CyanPDF
-        MANUAL_FINALIZATION
-        ${PROJECT_SOURCES}
-    )
-endif()
+qt_add_executable(CyanPDF MANUAL_FINALIZATION ${PROJECT_SOURCES})
 
 target_include_directories(CyanPDF PRIVATE ${LCMS2_INCLUDE_DIRS})
 
 target_link_libraries(CyanPDF PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
+target_link_libraries(CyanPDF PRIVATE Qt${QT_VERSION_MAJOR}::Concurrent)
 target_link_libraries(CyanPDF PRIVATE ${LCMS2_LIBRARIES} ${LCMS2_LDFLAGS})
 
-if(${QT_VERSION} VERSION_LESS 6.1.0)
-  set(BUNDLE_ID_OPTION MACOSX_BUNDLE_GUI_IDENTIFIER graphics.cyan.pdf)
-endif()
+set(BUNDLE_ID_OPTION MACOSX_BUNDLE_GUI_IDENTIFIER graphics.cyan.pdf)
 set_target_properties(CyanPDF PROPERTIES
     ${BUNDLE_ID_OPTION}
     MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
@@ -56,6 +49,4 @@ install(TARGETS CyanPDF
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 
-if(QT_VERSION_MAJOR EQUAL 6)
-    qt_finalize_executable(CyanPDF)
-endif()
+qt_finalize_executable(CyanPDF)
