@@ -8,12 +8,6 @@
 
 #include <QMainWindow>
 
-QT_BEGIN_NAMESPACE
-namespace Ui {
-class CyanPDF;
-}
-QT_END_NAMESPACE
-
 class CyanPDF : public QMainWindow
 {
     Q_OBJECT
@@ -72,14 +66,6 @@ public:
 
     void readSettings();
     void writeSettings();
-
-private slots:
-    void on_actionOpen_triggered();
-    void on_actionSave_triggered();
-    void on_actionQuit_triggered();
-
-private:
-    Ui::CyanPDF *ui;
 };
 
 #endif // CYANPDF_H

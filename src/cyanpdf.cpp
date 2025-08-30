@@ -4,7 +4,6 @@
 */
 
 #include "cyanpdf.h"
-#include "ui_cyanpdf.h"
 
 #include <QDebug>
 #include <QDir>
@@ -22,16 +21,13 @@
 
 CyanPDF::CyanPDF(QWidget *parent)
     : QMainWindow(parent)
-    , ui(new Ui::CyanPDF)
 {
-    ui->setupUi(this);
     setupWidgets();
 }
 
 CyanPDF::~CyanPDF()
 {
     writeSettings();
-    delete ui;
 }
 
 const QString CyanPDF::getGhostscript(bool pathOnly)
@@ -305,21 +301,4 @@ void CyanPDF::readSettings()
 void CyanPDF::writeSettings()
 {
     // TODO
-}
-
-void CyanPDF::on_actionOpen_triggered()
-{
-    // TODO
-}
-
-
-void CyanPDF::on_actionSave_triggered()
-{
-    // TODO
-}
-
-
-void CyanPDF::on_actionQuit_triggered()
-{
-    qApp->quit();
 }

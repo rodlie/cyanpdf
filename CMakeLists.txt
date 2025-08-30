@@ -22,7 +22,6 @@ set(PROJECT_SOURCES
     src/main.cpp
     src/cyanpdf.cpp
     src/cyanpdf.h
-    src/cyanpdf.ui
 )
 
 qt_add_executable(CyanPDF MANUAL_FINALIZATION ${PROJECT_SOURCES})
