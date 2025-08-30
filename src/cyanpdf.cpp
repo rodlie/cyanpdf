@@ -24,10 +24,6 @@ CyanPDF::CyanPDF(QWidget *parent)
     , ui(new Ui::CyanPDF)
 {
     ui->setupUi(this);
-    qDebug() << "Ghostscript:" << getGhostscript() << getGhostscriptVersion();
-    qDebug() << "RGB profiles:" << getProfiles(ColorSpace::RGB);
-    qDebug() << "GRAY profiles:" << getProfiles(ColorSpace::GRAY);
-    qDebug() << "CMYK profiles:" << getProfiles(ColorSpace::CMYK);
 }
 
 CyanPDF::~CyanPDF()
@@ -170,13 +166,13 @@ const QStringList CyanPDF::getConvertArgs(const QString &inputFile,
          << QString("-sColorConversionStrategyForImages=%1").arg(cs)
          << QString("-dRenderIntent=%1").arg(QString::number(renderIntent))
          << QString("-dPreserveBlack=%1").arg(blackPoint ? "true" : "false")
-         << QString("-sDefaultRGBProfile=\"%1\"").arg(defRgbIcc)
-         << QString("-sDefaultGrayProfile=\"%1\"").arg(defGrayIcc)
-         << QString("-sDefaultCMYKProfile=\"%1\"").arg(defCmykIcc)
-         << QString("-sOutputICCProfile=\"%1\"").arg(outputIcc)
-         << QString("-sOutputFile=\"%1\"").arg(outputFile)
-         << QString("\"%1\"").arg(ps)
-         << QString("\"%1\"").arg(inputFile);
+         << QString("-sDefaultRGBProfile=%1").arg(defRgbIcc)
+         << QString("-sDefaultGrayProfile=%1").arg(defGrayIcc)
+         << QString("-sDefaultCMYKProfile=%1").arg(defCmykIcc)
+         << QString("-sOutputICCProfile=%1").arg(outputIcc)
+         << QString("-sOutputFile=%1").arg(outputFile)
+         << QString("%1").arg(ps)
+         << QString("%1").arg(inputFile);
     return args;
 }
 
