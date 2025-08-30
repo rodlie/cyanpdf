@@ -3,7 +3,7 @@
 
 cmake_minimum_required(VERSION 3.16)
 
-project(CyanPDF VERSION 0.1 LANGUAGES CXX)
+project(cyanpdf VERSION 0.1.0 LANGUAGES CXX)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOUIC ON)
@@ -12,28 +12,38 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+set(DESKTOP_ID "graphics.cyan.pdf")
+
 find_package(QT NAMES Qt6 REQUIRED COMPONENTS Widgets)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Concurrent)
 
 find_package(PkgConfig QUIET)
 pkg_search_module(LCMS2 REQUIRED lcms2)
 
+add_definitions(-DCYANPDF_VERSION="${PROJECT_VERSION}")
+add_definitions(-DCYANPDF_ID="${DESKTOP_ID}")
+
+if(CMAKE_BUILD_TYPE MATCHES "^(release|Release|RELEASE)$")
+    add_definitions(-DQT_NO_DEBUG_OUTPUT)
+endif()
+
 set(PROJECT_SOURCES
     src/main.cpp
     src/cyanpdf.cpp
     src/cyanpdf.h
+    cyanpdf.qrc
 )
 
-qt_add_executable(CyanPDF MANUAL_FINALIZATION ${PROJECT_SOURCES})
+qt_add_executable(cyanpdf MANUAL_FINALIZATION ${PROJECT_SOURCES})
 
-target_include_directories(CyanPDF PRIVATE ${LCMS2_INCLUDE_DIRS})
+target_include_directories(cyanpdf PRIVATE ${LCMS2_INCLUDE_DIRS})
 
-target_link_libraries(CyanPDF PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
-target_link_libraries(CyanPDF PRIVATE Qt${QT_VERSION_MAJOR}::Concurrent)
-target_link_libraries(CyanPDF PRIVATE ${LCMS2_LIBRARIES} ${LCMS2_LDFLAGS})
+target_link_libraries(cyanpdf PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
+target_link_libraries(cyanpdf PRIVATE Qt${QT_VERSION_MAJOR}::Concurrent)
+target_link_libraries(cyanpdf PRIVATE ${LCMS2_LIBRARIES} ${LCMS2_LDFLAGS})
 
-set(BUNDLE_ID_OPTION MACOSX_BUNDLE_GUI_IDENTIFIER graphics.cyan.pdf)
-set_target_properties(CyanPDF PROPERTIES
+set(BUNDLE_ID_OPTION MACOSX_BUNDLE_GUI_IDENTIFIER ${DESKTOP_ID})
+set_target_properties(cyanpdf PROPERTIES
     ${BUNDLE_ID_OPTION}
     MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
     MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
@@ -42,10 +52,19 @@ set_target_properties(CyanPDF PROPERTIES
 )
 
 include(GNUInstallDirs)
-install(TARGETS CyanPDF
+install(TARGETS cyanpdf
     BUNDLE DESTINATION .
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
+install(FILES
+    docs/logo.svg
+    DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/icons/hicolor/scalable/apps/${DESKTOP_ID}.svg)
+install(FILES
+    docs/logo.png
+    DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/icons/hicolor/128x128/apps/${DESKTOP_ID}.png)
+install(FILES
+    cyanpdf.desktop
+    DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/applications/${DESKTOP_ID}.desktop)
 
-qt_finalize_executable(CyanPDF)
+qt_finalize_executable(cyanpdf)

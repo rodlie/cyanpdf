@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=Cyan PDF
+GenericName=Cyan PDF
+Comment=Prepress PDF Converter
+Categories=Graphics;
+Exec=cyanpdf %f
+Icon=graphics.cyan.pdf
+StartupNotify=false
+Terminal=false
+Type=Application
+StartupWMClass=cyanpdf

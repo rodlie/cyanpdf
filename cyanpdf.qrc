@@ -1,0 +1,7 @@
+<RCC>
+    <qresource prefix="/">
+        <file>docs/logo.svg</file>
+        <file>docs/pdf.svg</file>
+        <file>docs/logo.png</file>
+    </qresource>
+</RCC>

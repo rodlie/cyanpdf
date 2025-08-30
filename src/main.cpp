@@ -10,6 +10,12 @@
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
+    QApplication::setApplicationName("CyanPDF");
+    QApplication::setOrganizationName("CyanPDF");
+    QApplication::setApplicationVersion(QString(CYANPDF_VERSION));
+    QApplication::setOrganizationDomain(QString(CYANPDF_ID));
+    QGuiApplication::setDesktopFileName(QString(CYANPDF_ID));
+
     CyanPDF w;
     w.show();
     return a.exec();

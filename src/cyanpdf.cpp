@@ -284,6 +284,9 @@ const bool CyanPDF::isICC(const QString &filename)
 
 void CyanPDF::setupWidgets()
 {
+    setWindowTitle("Cyan PDF");
+    setWindowIcon(QIcon(":/docs/logo.svg"));
+
     // TODO
     QTimer::singleShot(10, this, &CyanPDF::readSettings);
 }
