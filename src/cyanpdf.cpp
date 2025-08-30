@@ -15,10 +15,7 @@
 #include <QStandardPaths>
 #include <QProcess>
 #include <QRegularExpression>
-
-#ifdef Q_OS_WIN
 #include <QDirIterator>
-#endif
 
 #include <lcms2.h>
 
@@ -27,7 +24,10 @@ CyanPDF::CyanPDF(QWidget *parent)
     , ui(new Ui::CyanPDF)
 {
     ui->setupUi(this);
-    qDebug() << "Ghostscript?" << getGhostscript() << getGhostscriptVersion();
+    qDebug() << "Ghostscript:" << getGhostscript() << getGhostscriptVersion();
+    qDebug() << "RGB profiles:" << getProfiles(ColorSpace::RGB);
+    qDebug() << "GRAY profiles:" << getProfiles(ColorSpace::GRAY);
+    qDebug() << "CMYK profiles:" << getProfiles(ColorSpace::CMYK);
 }
 
 CyanPDF::~CyanPDF()
@@ -98,7 +98,7 @@ const QString CyanPDF::getPostscript(const QString &filename,
     }
 
     if (!content.isEmpty()) {
-        QRegularExpression regex("/ICCProfile \\([^)]*\\) def");
+        static QRegularExpression regex("/ICCProfile \\([^)]*\\) def");
         const QString output = QString("%1/%2.ps").arg(getCachePath(), getChecksum(filename));
         const QString replacement = QString("/ICCProfile (%1) def").arg(profile);
         const QString modified = content.replace(regex, replacement);
@@ -206,8 +206,34 @@ const int CyanPDF::getColorspace(const QString &profile)
 
 const QStringList CyanPDF::getProfiles(const int &colorspace)
 {
-    // TODO
-    return QStringList();
+    QStringList folders;
+#ifdef Q_OS_WIN
+    folders << QDir::rootPath() + "/WINDOWS/System32/spool/drivers/color";
+#elif defined(Q_OS_MAC)
+    folders << "/Library/ColorSync/Profiles";
+    folders << QDir::homePath() + "/Library/ColorSync/Profiles";
+#else
+    const QStringList common = QStandardPaths::standardLocations(QStandardPaths::GenericDataLocation);
+    for (const QString &path : common) { folders << QString("%1/color/icc").arg(path); }
+#endif
+    folders << QDir::homePath() + "/.color/icc";
+
+    QStringList profiles;
+    for (const QString &path : folders) {
+        QDir directory(path);
+        if (directory.exists()) {
+            QDir::Filters filters = QDir::Files | QDir::Readable;
+            QDirIterator it(directory.absolutePath(),
+                            {"*.icc"},
+                            filters,
+                            QDirIterator::Subdirectories);
+            while (it.hasNext()) {
+                const QString profile = it.next();
+                if (getColorspace(profile) == colorspace) { profiles << profile; }
+            }
+        }
+    }
+    return profiles;
 }
 
 const QString CyanPDF::getProfileName(const QString &profile)
