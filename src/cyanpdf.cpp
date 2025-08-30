@@ -290,8 +290,6 @@ const bool CyanPDF::isICC(const QString &filename)
 void CyanPDF::setupWidgets()
 {
     // TODO
-    setupProfiles();
-    populateProfiles();
     QTimer::singleShot(10, this, &CyanPDF::readSettings);
 }
 
