@@ -44,6 +44,8 @@ Always use color profiles recommended by the printer.
 ### Compile
 
 ```
+git clone https://github.com/rodlie/cyanpdf
+cd cyanpdf
 mkdir build && cd build 
 cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr ..
 cmake --build .
