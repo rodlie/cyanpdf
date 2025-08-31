@@ -8,6 +8,17 @@ A simple tool designed to convert any PDF into a prepress-ready PDF/X document, 
 
 *This project was created to solve a personal need: replicating the CMYK output of Affinity Designer/Publisher on a Linux system using Inkscape.*
 
+## Usage
+
+To begin, create a PDF in your preferred application and then open it with Cyan PDF.
+
+Before you can use Cyan PDF, you must configure the color profiles.
+
+* **Default Profiles:** Set a fallback profile for each colorspace: **RGB**, **CMYK**, and **GRAY**. Cyan PDF will use these if your input PDF doesn't contain embedded profiles.
+* **Output Profile**: Next, set the output profile for your target printer. Only **CMYK** and **GRAY** profiles are supported for output. You also need to specify the **rendering intent** and the **black point compensation**.
+
+Once you have configured these settings, click **Save**.
+
 ## Build
 
 ### Requirements
