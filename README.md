@@ -63,3 +63,24 @@ or
 ```
 cmake --install . --prefix /some/location
 ```
+
+```
+├── bin
+│   └── cyanpdf
+└── share
+    ├── applications
+    │   └── graphics.cyan.pdf.desktop
+    ├── doc
+    │   └── cyanpdf-0.9.0
+    │       ├── LICENSE
+    │       └── README.md
+    └── icons
+        └── hicolor
+            ├── 128x128
+            │   └── apps
+            │       └── graphics.cyan.pdf.png
+            └── scalable
+                └── apps
+                    └── graphics.cyan.pdf.svg
+
+```
