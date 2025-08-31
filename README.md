@@ -6,7 +6,7 @@ A simple tool designed to convert any PDF into a prepress-ready PDF/X document, 
 
 ---
 
-*This project was created to solve a personal need: replicating the CMYK output of Affinity Designer/Publisher on a Linux system.*
+*This project was created to solve a personal need: replicating the CMYK output of Affinity Designer/Publisher on a Linux system using Inkscape.*
 
 ## Build
 
