@@ -514,6 +514,10 @@ void CyanPDF::readSettings()
     QSettings settings;
     settings.beginGroup("cyanpdf");
 
+    if (settings.value("geometry").isValid()) {
+        restoreGeometry(settings.value("geometry").toByteArray());
+    }
+
     if (settings.value("rgb").isValid()) {
         {
             int index = mComboDefRgb->findData(settings.value("rgb").toString());
@@ -601,7 +605,10 @@ void CyanPDF::readSettings()
 
 void CyanPDF::writeSettings()
 {
-    // TODO
+    QSettings settings;
+    settings.beginGroup("cyanpdf");
+    settings.setValue("geometry", geometry());
+    settings.endGroup();
 }
 
 void CyanPDF::setLastOpenPath(const QString &path)
@@ -744,6 +751,8 @@ void CyanPDF::savePDF(const QString &filename)
                              tr("Missing output filename."));
         return;
     }
+    setLastSavePath(QFileInfo(filename).absolutePath());
+
     if (!isPDF(mFilename)) {
         QMessageBox::warning(this, tr("Missing PDF"),
                              tr("No PDF document loaded."));
