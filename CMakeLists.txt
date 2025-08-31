@@ -57,13 +57,17 @@ install(TARGETS cyanpdf
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 install(FILES
-    docs/${DESKTOP_ID}.svg
+    ${CMAKE_CURRENT_SOURCE_DIR}/docs/${DESKTOP_ID}.svg
     DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/icons/hicolor/scalable/apps)
 install(FILES
-    docs/${DESKTOP_ID}.png
+    ${CMAKE_CURRENT_SOURCE_DIR}/docs/${DESKTOP_ID}.png
     DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/icons/hicolor/128x128/apps)
 install(FILES
-    docs/${DESKTOP_ID}.desktop
+    ${CMAKE_CURRENT_SOURCE_DIR}/docs/${DESKTOP_ID}.desktop
     DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/applications)
+install(FILES
+    ${CMAKE_CURRENT_SOURCE_DIR}/README.md
+    ${CMAKE_CURRENT_SOURCE_DIR}/LICENSE
+    DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/doc/${PROJECT_NAME}-${PROJECT_VERSION})
 
 qt_finalize_executable(cyanpdf)
