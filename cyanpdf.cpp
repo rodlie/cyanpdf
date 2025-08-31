@@ -23,6 +23,7 @@
 #include <QFileDialog>
 #include <QSettings>
 #include <QMessageBox>
+#include <QDesktopServices>
 
 #include <lcms2.h>
 
@@ -131,7 +132,9 @@ const QString CyanPDF::getPostscript(const QString &filename,
 
 const QString CyanPDF::getCachePath()
 {
-    QString path = QDir::tempPath(); // TODO
+    QStringList paths = QStandardPaths::standardLocations(QStandardPaths::GenericCacheLocation);
+    QString path = paths.first();
+    if (path.isEmpty()) { path = QDir::tempPath(); }
     path.append("/cyanpdf");
     if (!QFile::exists(path)) {
         QDir dir(path);
@@ -736,6 +739,83 @@ void CyanPDF::loadPDF(const QString &filename)
 
 void CyanPDF::savePDF(const QString &filename)
 {
-    QMessageBox::warning(this, tr("Not implemented"), tr("Feature not implemented yet."));
-    // TODO
+    if (filename.trimmed().isEmpty()) {
+        QMessageBox::warning(this, tr("Missing filename"),
+                             tr("Missing output filename."));
+        return;
+    }
+    if (!isPDF(mFilename)) {
+        QMessageBox::warning(this, tr("Missing PDF"),
+                             tr("No PDF document loaded."));
+        return;
+    }
+    const QString defRgb = mComboDefRgb->currentData().toString();
+    if (!isICC(defRgb)) {
+        QMessageBox::warning(this, tr("Missing RGB Profile"),
+                             tr("Missing default RGB profile."));
+        return;
+    }
+    const QString defCmyk = mComboDefCmyk->currentData().toString();
+    if (!isICC(defCmyk)) {
+        QMessageBox::warning(this, tr("Missing CMYK Profile"),
+                             tr("Missing default CMYK profile."));
+        return;
+    }
+    const QString defGray = mComboDefGray->currentData().toString();
+    if (!isICC(defGray)) {
+        QMessageBox::warning(this, tr("Missing GRAY Profile"),
+                             tr("Missing default GRAY profile."));
+        return;
+    }
+    const QString outIcc = mComboOutIcc->currentData().toString();
+    if (!isICC(outIcc)) {
+        QMessageBox::warning(this, tr("Missing Output Profile"),
+                             tr("Missing output (CMYK/GRAY) profile."));
+        return;
+    }
+
+    const int intent = mComboRenderIntent->currentData().toInt();
+    const bool blackPoint = mCheckBlackPoint->isChecked();
+
+    const QString gsPath = getGhostscript();
+    const QString gsVer = getGhostscriptVersion();
+    if (gsPath.trimmed().isEmpty() || gsVer.trimmed().isEmpty()) {
+        QMessageBox::warning(this, tr("Missing Ghostscript"),
+                             tr("Ghostscript not found, please install."));
+        return;
+    }
+
+    const QString ps = getPostscript(mFilename, outIcc);
+    if (!QFile::exists(ps)) {
+        QMessageBox::warning(this, tr("Missing Postscript"),
+                             tr("Unable to create postscript file."));
+        return;
+    }
+
+    const QStringList args = getConvertArgs(mFilename,
+                                            filename,
+                                            outIcc,
+                                            defRgb,
+                                            defGray,
+                                            defCmyk,
+                                            getColorspace(outIcc),
+                                            intent,
+                                            blackPoint);
+    if (args.count() < 1) {
+        QMessageBox::warning(this, tr("Missing Arguments"),
+                             tr("Unable to generate Ghostscript arguments."));
+        return;
+    }
+
+    QProcess proc;
+    proc.start(gsPath, args);
+    if (proc.waitForStarted()) {
+        proc.waitForFinished();
+        QByteArray result = proc.readAll();
+        if (proc.exitCode() == 0) { if (isPDF(filename)) { QDesktopServices::openUrl(QUrl(filename)); } }
+        else {
+            QMessageBox::warning(this, tr("Failed to Convert"),
+                                 tr("Failed converting PDF.<br><br><pre>%1</pre>").arg(result));
+        }
+    }
 }
