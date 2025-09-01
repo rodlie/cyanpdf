@@ -14,7 +14,7 @@ To begin, create a PDF in your preferred application and then open it with Cyan 
 
 Before you can use Cyan PDF, you must configure the color profiles.
 
-* **Default Profiles:** Set a fallback profile for each colorspace: **RGB**, **CMYK**, and **GRAY**. Cyan PDF will use these if your input PDF doesn't contain embedded profiles.
+* **Input Profiles:** Set a fallback profile for each colorspace: **RGB**, **CMYK**, and **GRAY**. Cyan PDF will use these if your input PDF doesn't contain embedded profiles, or `Override Input Profiles` is checked *(default on)*.
 * **Output Profile**: Next, set the output profile for your target printer. Only **CMYK** and **GRAY** profiles are supported for output. You also need to specify the **rendering intent** and the **black point compensation**.
 
 Once you have configured these settings, click **Save**.
@@ -71,7 +71,7 @@ cmake --install . --prefix /some/location
     ├── applications
     │   └── graphics.cyan.pdf.desktop
     ├── doc
-    │   └── cyanpdf-0.9.0
+    │   └── cyanpdf-0.9.1
     │       ├── LICENSE
     │       └── README.md
     └── icons
