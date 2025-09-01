@@ -63,7 +63,8 @@ public:
                                      const QString defCmykIcc,
                                      const int &colorSpace = ColorSpace::CMYK,
                                      const int &renderIntent = RenderIntent::Colorimetric,
-                                     const bool &blackPoint = true);
+                                     const bool &blackPoint = true,
+                                     const bool &overrideIcc = true);
 
     const int getColorspace(const QString &profile);
     const QStringList getProfiles(const int &colorspace);
@@ -103,6 +104,7 @@ private:
     ComboBox *mComboOutIcc;
     ComboBox *mComboRenderIntent;
     QCheckBox *mCheckBlackPoint;
+    QCheckBox *mCheckOverrideIcc;
     QTreeWidget *mSpecsList;
     QString mFilename;
 };

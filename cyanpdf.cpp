@@ -38,6 +38,7 @@ CyanPDF::CyanPDF(QWidget *parent)
     , mComboOutIcc(nullptr)
     , mComboRenderIntent(nullptr)
     , mCheckBlackPoint(nullptr)
+    , mCheckOverrideIcc(nullptr)
     , mSpecsList(nullptr)
 {
     setupWidgets();
@@ -164,7 +165,8 @@ const QStringList CyanPDF::getConvertArgs(const QString &inputFile,
                                           const QString defCmykIcc,
                                           const int &colorSpace,
                                           const int &renderIntent,
-                                          const bool &blackPoint)
+                                          const bool &blackPoint,
+                                          const bool &overrideIcc)
 {
     QStringList args;
     const QString cs = colorSpace == ColorSpace::CMYK ? "CMYK" : "GRAY";
@@ -183,7 +185,8 @@ const QStringList CyanPDF::getConvertArgs(const QString &inputFile,
         getColorspace(outputIcc) != colorSpace) { return args; }
 
     args << "-dPDFX" << "-dBATCH" << "-dNOPAUSE" << "-dNOSAFER" << "-sDEVICE=pdfwrite"
-         << "-dOverrideICC=true" << "-dEncodeColorImages=true" << "-dEmbedAllFonts=true"
+         << "-dEncodeColorImages=true" << "-dEmbedAllFonts=true"
+         << QString("-dOverrideICC=%1").arg(overrideIcc ? "true" : "false")
          << QString("-sProcessColorModel=Device%1").arg(cs)
          << QString("-sColorConversionStrategy=%1").arg(cs)
          << QString("-sColorConversionStrategyForImages=%1").arg(cs)
@@ -325,7 +328,11 @@ void CyanPDF::setupWidgets()
     mComboRenderIntent = new ComboBox(this);
 
     mCheckBlackPoint = new QCheckBox(this);
-    mCheckBlackPoint->setText(tr("Black Point"));
+    mCheckBlackPoint->setText(tr("Black Point Compensation"));
+
+    mCheckOverrideIcc = new QCheckBox(this);
+    mCheckOverrideIcc->setText(tr("Override Input Profiles"));
+    mCheckOverrideIcc->setToolTip(tr("Override any ICC profiles contained in the source document"));
 
     mSpecsList = new QTreeWidget(this);
     mSpecsList->setHeaderLabels({tr("Key"), tr("Value")});
@@ -345,6 +352,7 @@ void CyanPDF::setupWidgets()
     mComboOutIcc->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
     mComboRenderIntent->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
     mCheckBlackPoint->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
+    mCheckOverrideIcc->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
 
     const auto rgbWid = new QWidget(this);
     const auto rgbLay = new QHBoxLayout(rgbWid);
@@ -357,7 +365,7 @@ void CyanPDF::setupWidgets()
     const auto outputWid = new QWidget(this);
     const auto outputLay = new QHBoxLayout(outputWid);
     const auto extraWid = new QWidget(this);
-    const auto extraLay = new QHBoxLayout(extraWid);
+    const auto extraLay = new QVBoxLayout(extraWid);
     const auto buttonWid = new QWidget(this);
     const auto buttonLay = new QHBoxLayout(buttonWid);
     const auto sideWid = new QWidget(this);
@@ -399,8 +407,8 @@ void CyanPDF::setupWidgets()
     outputLay->addWidget(new QLabel(tr("Output Profile"), this), Qt::AlignLeft);
     outputLay->addWidget(mComboOutIcc, Qt::AlignRight);
 
-    extraLay->addWidget(new QWidget(this), Qt::AlignLeft);
-    extraLay->addWidget(mCheckBlackPoint, Qt::AlignRight);
+    extraLay->addWidget(mCheckBlackPoint);
+    extraLay->addWidget(mCheckOverrideIcc);
 
     const auto appLabel = new QLabel(this);
     appLabel->setFixedHeight(128);
@@ -460,6 +468,7 @@ void CyanPDF::setupWidgets()
     sideLay->addSpacing(10);
     sideLay->addWidget(outputWid);
     sideLay->addWidget(intentWid);
+    sideLay->addSpacing(5);
     sideLay->addWidget(extraWid);
     sideLay->addWidget(mSpecsList);
     sideLay->addWidget(buttonWid);
@@ -585,6 +594,7 @@ void CyanPDF::readSettings()
 
     mComboRenderIntent->setCurrentIndex(settings.value("intent", 1).toInt());
     mCheckBlackPoint->setChecked(settings.value("blackpont", true).toBool());
+    mCheckOverrideIcc->setChecked(settings.value("overrideIcc", true).toBool());
 
     settings.endGroup();
 
@@ -593,6 +603,13 @@ void CyanPDF::readSettings()
         QSettings settings;
         settings.beginGroup("cyanpdf");
         settings.setValue("blackpoint", state == Qt::Checked ? true : false);
+        settings.endGroup();
+    });
+    connect(mCheckOverrideIcc, &QCheckBox::stateChanged,
+            this, [](int state) {
+        QSettings settings;
+        settings.beginGroup("cyanpdf");
+        settings.setValue("overrideIcc", state == Qt::Checked ? true : false);
         settings.endGroup();
     });
 
@@ -785,6 +802,7 @@ void CyanPDF::savePDF(const QString &filename)
 
     const int intent = mComboRenderIntent->currentData().toInt();
     const bool blackPoint = mCheckBlackPoint->isChecked();
+    const bool overrideIcc = mCheckOverrideIcc->isChecked();
 
     const QString gsPath = getGhostscript();
     const QString gsVer = getGhostscriptVersion();
@@ -809,7 +827,8 @@ void CyanPDF::savePDF(const QString &filename)
                                             defCmyk,
                                             getColorspace(outIcc),
                                             intent,
-                                            blackPoint);
+                                            blackPoint,
+                                            overrideIcc);
     if (args.count() < 1) {
         QMessageBox::warning(this, tr("Missing Arguments"),
                              tr("Unable to generate Ghostscript arguments."));
